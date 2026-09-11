@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google"; // <--- Import fonts here
 import "./globals.css";
+import { SmoothScroll } from "./smooth-scroll";
 
 // --- DEFINE FONTS ---
 const inter = Inter({ 
@@ -24,10 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
-        {children}
-      </body>
+      <html lang="en" className="scroll-smooth">
+        <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+          <SmoothScroll>{children}</SmoothScroll>
+        </body>
     </html>
   );
 }

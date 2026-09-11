@@ -125,8 +125,8 @@ export default function Portfolio() {
 
             <FadeIn delay={0.4}>
                 <div className="pt-4 flex gap-4">
-                    <SocialIcon href="https://github.com/rivasahamed27" icon={<Github size={20}/>} />
-                    <SocialIcon href="https://linkedin.com/in/riyas-ahamed-963a96281" icon={<Linkedin size={20}/>} />
+                    <SocialIcon href="https://github.com/riyasahamed27" icon={<Github size={20}/>} />
+                    <SocialIcon href="https://linkedin.com/in/riyas-ahamed-dev" icon={<Linkedin size={20}/>} />
                     <SocialIcon href="mailto:riyasahamed82478@gmail.com" icon={<Mail size={20}/>} />
                 </div>
             </FadeIn>
@@ -251,6 +251,41 @@ export default function Portfolio() {
             <SectionHeader title="Featured Projects" subtitle="Highlighted work showcasing technical expertise" />
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                 <ProjectCard
+                     title="Swypatune"
+                     desc="Full-stack contest platform for video/audio content featuring monetization, push notifications, and payment processing."
+                     tags={['Laravel', 'Ionic', 'Stripe']}
+                     image="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                     links={[
+                       { label: 'Google Play', href: 'https://play.google.com/store/apps/details?id=com.swypeglobal&hl=en_IN&pli=1' },
+                       { label: 'App Store', href: 'https://apps.apple.com/in/app/swypatune-global/id6737972162' },
+                     ]}
+                     delay={0.6}
+                 />
+                 <ProjectCard
+                     title="WeAreWear"
+                     desc="A modern SEO-optimized e-commerce platform built with Next.js, featuring a responsive storefront and scalable Express.js REST APIs. Integrated MongoDB for secure authentication, product management, and cart functionality, delivering a smooth and efficient shopping experience."
+                     tags={['Next.js', 'Express.js', 'Node.js', 'MongoDB', 'REST APIs']}
+                     image="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                     links={[{ label: 'Visit Website', href: 'https://www.wearewear.ai' }]}
+                     delay={0.8}
+                 />
+                 <ProjectCard 
+                     title="Lovu Travel"
+                     desc="A cross-platform travel marketplace designed for couples, connecting travelers with hotels, travel advisors, and experience providers. Built personalized trip-planning features with secure payments and a scalable backend to deliver a seamless travel booking experience."
+                     tags={['React.js', 'Firebase', 'Stripe', 'Laravel', 'MySQL']}
+                     image="https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                     links={[{ label: 'Visit Website', href: 'https://lovu.travel' }]}
+                     delay={1}
+                 />
+                <ProjectCard 
+                    title="Taka Solutions"
+                    desc="Interactive dashboard for real-time visualization of electricity consumption across Dubai buildings with dynamic reporting."
+                    tags={['Next.js', 'Django', 'Chart.js']}
+                    image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                    links={[{ label: 'Visit Website', href: 'https://takasolutions.com' }]}
+                    delay={0.4}
+                />
                 <ProjectCard 
                     title="AI Fashion Platform"
                     desc="Architected a full-stack web app generating personalized outfit suggestions using AI-based image analysis and machine learning algorithms."
@@ -264,20 +299,6 @@ export default function Portfolio() {
                     tags={['React Native', 'WebRTC', 'Matrix SDK']}
                     image="https://images.unsplash.com/photo-1616348436168-de43ad0db179?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
                     delay={0.2}
-                />
-                <ProjectCard 
-                    title="Energy Dashboard"
-                    desc="Interactive dashboard for real-time visualization of electricity consumption across Dubai buildings with dynamic reporting."
-                    tags={['Next.js', 'Django', 'Chart.js']}
-                    image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                    delay={0.4}
-                />
-                 <ProjectCard 
-                    title="Swypatune"
-                    desc="Full-stack contest platform for video/audio content featuring monetization, push notifications, and payment processing."
-                    tags={['Laravel', 'Ionic', 'Stripe']}
-                    image="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                    delay={0.6}
                 />
             </div>
         </div>
@@ -378,7 +399,7 @@ export default function Portfolio() {
                 <div className="mt-12 pt-10 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center">
                     <p className="text-slate-500 dark:text-slate-500 text-sm mb-4">Designed & Built by Riyas Ahamed</p>
                     <div className="flex gap-4">
-                        <SocialIcon href="https://github.com/rivasahamed27" icon={<Github size={18} />} />
+                        <SocialIcon href="https://github.com/riyasahamed27" icon={<Github size={18} />} />
                         <SocialIcon href="https://linkedin.com/in/riyas-ahamed-963a96281" icon={<Linkedin size={18} />} />
                     </div>
                 </div>
@@ -467,7 +488,7 @@ function SkillIcon({ name, icon, color, delay }: { name: string; icon: React.Rea
   );
 }
 
-function ProjectCard({ title, desc, tags, image, delay }: { title: string; desc: string; tags: string[]; image: string, delay: number }) {
+function ProjectCard({ title, desc, tags, image, imageFit = 'cover', links, delay }: { title: string; desc: string; tags: string[]; image: string; imageFit?: 'cover' | 'contain'; links?: { label: string; href: string }[]; delay: number }) {
   return (
     <FadeIn delay={delay}>
         <motion.div 
@@ -479,7 +500,7 @@ function ProjectCard({ title, desc, tags, image, delay }: { title: string; desc:
                 <img 
                     src={image} 
                     alt={title} 
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                    className={`w-full h-full ${imageFit === 'cover' ? 'object-cover group-hover:scale-110' : 'object-contain'} transform transition-transform duration-700`}
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1000&q=80";
                     }}
@@ -492,14 +513,29 @@ function ProjectCard({ title, desc, tags, image, delay }: { title: string; desc:
                 <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6 flex-grow">
                     {desc}
                 </p>
-                <div className="flex flex-wrap gap-2 mt-auto">
-                    {tags.map(tag => (
-                        <span key={tag} className="px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-full">
-                            {tag}
-                        </span>
-                    ))}
-                </div>
-            </div>
+                 <div className="flex flex-wrap gap-2 mt-auto">
+                     {tags.map(tag => (
+                         <span key={tag} className="px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-full">
+                             {tag}
+                         </span>
+                     ))}
+                 </div>
+                 {links && (
+                     <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
+                         {links.map(link => (
+                             <a
+                                 key={link.href}
+                                 href={link.href}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className="group inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-900/70 bg-blue-50 dark:bg-blue-950/40 px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:hover:border-blue-500 dark:hover:bg-blue-500"
+                             >
+                                 {link.label} <ExternalLink size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                             </a>
+                         ))}
+                     </div>
+                 )}
+             </div>
         </motion.div>
     </FadeIn>
   );
