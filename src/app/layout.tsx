@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google"; // <--- Import fonts here
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SmoothScroll } from "./smooth-scroll";
 
-// --- DEFINE FONTS ---
-const inter = Inter({ 
-  subsets: ["latin"], 
-  variable: "--font-sans" 
-});
-
-const playfair = Playfair_Display({ 
-  subsets: ["latin"], 
-  variable: "--font-serif" 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
   title: "Riyas Ahamed | Full Stack Developer",
-  description: "Portfolio of Riyas Ahamed - Full Stack Software Developer",
+  description:
+    "Portfolio of Riyas Ahamed - Full Stack Software Developer building scalable, production-ready applications.",
 };
 
 export default function RootLayout({
@@ -25,10 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <html lang="en" className="scroll-smooth">
-        <body className={`${inter.variable} ${playfair.variable} antialiased`}>
-          <SmoothScroll>{children}</SmoothScroll>
-        </body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("ra-theme");if(t==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}}catch(e){document.documentElement.classList.add("dark");}})();`,
+          }}
+        />
+      </head>
+      <body className={`${spaceGrotesk.variable} antialiased`}>
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }

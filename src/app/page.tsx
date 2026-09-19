@@ -1,586 +1,1213 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Github, Linkedin, Mail, Twitter, 
-  Download, ExternalLink, Code2, Terminal, 
-  Database, Cpu, Globe, Layout, Server, 
-  ChevronRight, Moon, Sun 
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Playfair_Display, Inter } from 'next/font/google';
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  Download,
+  ExternalLink,
+  Moon,
+  Sun,
+  ArrowDown,
+  CodeXml,
+} from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+import type { IconType } from "react-icons";
+import {
+  SiReact,
+  SiNextdotjs,
+  SiTypescript,
+  SiTailwindcss,
+  SiJavascript,
+  SiNodedotjs,
+  SiExpress,
+  SiPhp,
+  SiLaravel,
+  SiPostgresql,
+  SiMongodb,
+  SiAmazon,
+  SiDocker,
+  SiPython,
+  SiTensorflow,
+  SiOpencv,
+  SiMysql,
+} from "react-icons/si";
 
-// --- IMPORTS ---
-import { 
-  SiReact, SiNextdotjs, SiTypescript, SiTailwindcss, SiJavascript, 
-  SiNodedotjs, SiExpress, SiPhp, SiLaravel, 
-  SiPostgresql, SiMongodb, SiAmazon, SiDocker, 
-  SiPython, SiTensorflow, SiOpencv, SiMysql, SiGit 
-} from 'react-icons/si';
+import { CustomCursor } from "../components/CustomCursor";
+import { Preloader } from "../components/Preloader";
+import { Magnetic } from "../components/Magnetic";
+import { SplitReveal } from "../components/SplitReveal";
+import { GlassSurface } from "../components/ui/glass";
+import {
+  GlassCard,
+  GlassCardContent,
+  GlassCardDescription,
+  GlassCardHeader,
+  GlassCardTitle,
+} from "../components/ui/glass-card";
+import { GlassButton } from "../components/ui/glass-button";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/glass-tabs";
 
-// --- FONTS SETUP ---
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif' });
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+gsap.registerPlugin(ScrollTrigger, SplitText);
+
+const reduceMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const SOCIALS = [
+  { label: "GitHub", href: "https://github.com/riyasahamed27", icon: Github },
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/in/riyas-ahamed-dev",
+    icon: Linkedin,
+  },
+  {
+    label: "Email",
+    href: "mailto:riyasahamed82478@gmail.com",
+    icon: Mail,
+  },
+];
+
+const NAV_LINKS = ["Home", "Skills", "Projects", "Experience", "About"];
+
+const FULLSTACK_SKILLS: Skill[] = [
+  { name: "React", icon: SiReact, color: "#61DAFB" },
+  { name: "Next.js", icon: SiNextdotjs, color: "#ffffff" },
+  { name: "TypeScript", icon: SiTypescript, color: "#3178C6" },
+  { name: "Tailwind", icon: SiTailwindcss, color: "#06B6D4" },
+  { name: "JavaScript", icon: SiJavascript, color: "#F7DF1E" },
+  { name: "Node.js", icon: SiNodedotjs, color: "#339933" },
+  { name: "Express", icon: SiExpress, color: "#ffffff" },
+  { name: "PHP", icon: SiPhp, color: "#777BB4" },
+  { name: "Laravel", icon: SiLaravel, color: "#FF2D20" },
+  { name: "PostgreSQL", icon: SiPostgresql, color: "#4169E1" },
+  { name: "MySQL", icon: SiMysql, color: "#4479A1" },
+  { name: "MongoDB", icon: SiMongodb, color: "#47A248" },
+  { name: "AWS", icon: SiAmazon, color: "#FF9900" },
+  { name: "Docker", icon: SiDocker, color: "#2496ED" },
+];
+
+const AISKILLS: Skill[] = [
+  { name: "Python", icon: SiPython, color: "#3776AB" },
+  { name: "TensorFlow", icon: SiTensorflow, color: "#FF6F00" },
+  { name: "OpenCV", icon: SiOpencv, color: "#5C3EE8" },
+];
+
+const PROJECTS = [
+  {
+    title: "Swypatune",
+    desc: "Full-stack contest platform for video/audio content featuring monetization, push notifications, and payment processing.",
+    tags: ["Laravel", "Ionic", "Stripe"],
+    image:
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1000&q=80",
+    offset: 0,
+    links: [
+      {
+        label: "Google Play",
+        href: "https://play.google.com/store/apps/details?id=com.swypeglobal&hl=en_IN&pli=1",
+      },
+      {
+        label: "App Store",
+        href: "https://apps.apple.com/in/app/swypatune-global/id6737972162",
+      },
+    ],
+  },
+  {
+    title: "WeAreWear",
+    desc: "SEO-optimized e-commerce platform built with Next.js, featuring a responsive storefront and scalable Express.js REST APIs with MongoDB.",
+    tags: ["Next.js", "Express.js", "Node.js", "MongoDB"],
+    image:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80",
+    offset: 48,
+    links: [{ label: "Visit Website", href: "https://www.wearewear.ai" }],
+  },
+  {
+    title: "Lovu Travel",
+    desc: "Cross-platform travel marketplace for couples, connecting travelers with hotels, advisors, and experience providers.",
+    tags: ["React.js", "Firebase", "Stripe", "Laravel"],
+    image:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1000&q=80",
+    offset: 96,
+    links: [{ label: "Visit Website", href: "https://lovu.travel" }],
+  },
+  {
+    title: "Taka Solutions",
+    desc: "Interactive dashboard for real-time visualization of electricity consumption across Dubai buildings with dynamic reporting.",
+    tags: ["Next.js", "Django", "Chart.js"],
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
+    offset: 0,
+    links: [{ label: "Visit Website", href: "https://takasolutions.com" }],
+  },
+  {
+    title: "AI Fashion Platform",
+    desc: "Full-stack web app generating personalized outfit suggestions using AI-based image analysis and ML algorithms.",
+    tags: ["React", "Node.js", "Python", "AI/ML"],
+    image:
+      "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1000&q=80",
+    offset: 48,
+    links: [],
+  },
+  {
+    title: "Ribatis Mobile",
+    desc: "Secure government communication app with end-to-end encrypted chat and audio/video conferencing using Matrix SDK.",
+    tags: ["React Native", "WebRTC", "Matrix SDK"],
+    image:
+      "https://images.unsplash.com/photo-1616348436168-de43ad0db179?auto=format&fit=crop&w=1000&q=80",
+    offset: 96,
+    links: [],
+  },
+];
+
+const EXPERIENCE = [
+  {
+    role: "Junior Software Developer",
+    company: "RedBlox.io",
+    date: "Feb 2024 - Present",
+    items: [
+      "Developed and deployed 6+ full-stack web applications serving 10,000+ active users.",
+      "Architected secure user authentication systems (RBAC) using JWT and OAuth 2.0.",
+      "Optimized frontend performance, achieving a 20% improvement in page load times.",
+    ],
+    tech: ["React", "Next.js", "Node.js", "MySQL"],
+  },
+  {
+    role: "Software Development Intern",
+    company: "RedBlox.io",
+    date: "2020 - 2023",
+    items: [
+      "Developed web modules using React.js, Express.js, and MySQL.",
+      "Implemented backend APIs and user authentication flows.",
+      "Strong performance led to a full-time offer.",
+    ],
+    tech: ["React", "Express", "API Design"],
+  },
+  {
+    role: "Full Stack Intern",
+    company: "Twilight IT Solution",
+    date: "Internship",
+    items: [
+      "Gained hands-on experience in full-stack development.",
+      "Worked with HTML, CSS, JavaScript, PHP, MySQL, React.js, and MongoDB.",
+    ],
+    tech: ["PHP", "MySQL", "React"],
+  },
+];
+
+const MARQUEE_ITEMS = [
+  "React",
+  "Next.js",
+  "TypeScript",
+  "Node.js",
+  "Three.js",
+  "GSAP",
+  "Tailwind",
+  "PostgreSQL",
+  "MongoDB",
+  "AWS",
+  "Docker",
+  "Laravel",
+];
 
 export default function Portfolio() {
-  // --- THEME STATE ---
-  const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("home");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const velocity = useRef(0);
+  const ctx = useRef<gsap.Context | null>(null);
 
-  // Toggle Theme Function
+  useLayoutEffect(() => {
+    if (reduceMotion()) return;
+
+    ctx.current = gsap.context(() => {
+
+      // ---------- SCROLL PROGRESS ----------
+      ScrollTrigger.create({
+        start: 0,
+        end: "max",
+        onUpdate: (self) => {
+          gsap.set(".scroll-progress", { scaleX: self.progress });
+          velocity.current = self.getVelocity();
+        },
+      });
+
+      // ---------- AURORA: PER-SECTION COLOR SCRUB ----------
+      const aurora = document.querySelector(".aurora");
+      const auroraPalettes: Record<string, [string, string, string]> = {
+        home: ["#60a5fa", "#a78bfa", "#f472b6"],
+        skills: ["#a78bfa", "#38bdf8", "#fb923c"],
+        projects: ["#60a5fa", "#818cf8", "#c084fc"],
+        experience: ["#34d399", "#60a5fa", "#a78bfa"],
+        about: ["#f472b6", "#a78bfa", "#60a5fa"],
+      };
+      const auroraSections = ["home", "skills", "projects", "experience", "about"]
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => !!el);
+
+      const applyAurora = (id: string) => {
+        const pal = auroraPalettes[id];
+        if (!aurora || !pal) return;
+        gsap.to(aurora, {
+          "--au-a": pal[0],
+          "--au-b": pal[1],
+          "--au-c": pal[2],
+          duration: 0.9,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+      };
+
+      ScrollTrigger.create({
+        start: 0,
+        end: () => document.documentElement.scrollHeight - window.innerHeight,
+        onUpdate: (self) => {
+          const mid = self.scroll() + window.innerHeight * 0.5;
+          let active: HTMLElement | null = auroraSections[0] || null;
+          for (const s of auroraSections) {
+            if (s.getBoundingClientRect().top + self.scroll() <= mid) active = s;
+            else break;
+          }
+          if (active) applyAurora(active.id);
+        },
+      });
+
+      // ---------- HERO INTRO (SplitText) ----------
+      let heroSplit: SplitText | null = null;
+      heroSplit = new SplitText(".hero-name", {
+        type: "chars",
+        charsClass: "char-rise",
+        wordsClass: "word-rise",
+      });
+
+      gsap
+        .timeline({ defaults: { ease: "power3.out" } })
+        .from(
+          heroSplit.chars,
+          { opacity: 0, duration: 1, stagger: 0.04, delay: 3.05 },
+          0
+        )
+        .from(
+          ".hero-badge",
+          { opacity: 0, y: 24, duration: 0.8 },
+          "-=0.8"
+        )
+        .from(
+          ".hero-subs",
+          { opacity: 0, y: 20, duration: 0.8 },
+          "-=0.6"
+        )
+        .from(".hero-cta", { opacity: 0, y: 20, duration: 0.7 }, "-=0.5")
+        .from(
+          ".hero-socials",
+          { opacity: 0, y: 16, duration: 0.6 },
+          "-=0.45"
+        )
+        .from(
+          ".hero-canvas-wrap",
+          { opacity: 0, scale: 0.92, duration: 1.3 },
+          "-=1"
+        );
+
+      // ---------- HERO PARALLAX OUT ----------
+      // ---------- GENERIC REVEALS ----------
+      gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
+        gsap.from(el, {
+          y: 40,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+          scrollTrigger: { trigger: el, start: "top 88%" },
+        });
+      });
+
+      // ---------- MARQUEE (velocity reactive) ----------
+      const marqueeTween = gsap.to(".marquee-track", {
+        xPercent: -50,
+        repeat: -1,
+        duration: 26,
+        ease: "none",
+      });
+
+      const tick = () => {
+        const boost = Math.min(Math.abs(velocity.current) / 1400, 3);
+        gsap.to(marqueeTween, { timeScale: 1 + boost, duration: 0.6 });
+      };
+      gsap.ticker.add(tick);
+
+      // ---------- SKILLS POP-IN ----------
+      gsap.from(".skill-chip", {
+        scale: 0.3,
+        opacity: 0,
+        rotateX: -60,
+        stagger: 0.04,
+        duration: 0.7,
+        ease: "back.out(2)",
+        clearProps: "transform,opacity",
+        scrollTrigger: { trigger: "#skills", start: "top 70%" },
+      });
+
+      // ---------- HERO PARALLAX OUT (all screen sizes) ----------
+      gsap.to(".hero-content", {
+        yPercent: -14,
+        opacity: 0,
+        scale: 0.96,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#home",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
+
+      // Desktop-only: the Developer.tsx card sits beside the headline on
+      // large screens, so it can scroll away parallax-style. On small screens
+      // it stacks below the fold and would be invisible by the time it enters
+      // the viewport, so it must NOT fade out here.
+      gsap.matchMedia().add("(min-width: 1024px)", () => {
+        gsap.to(".hero-canvas-layer", {
+          yPercent: 18,
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: "#home",
+            start: "top top",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
+      });
+
+      // ---------- PARALLAX ORBS ----------
+      gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
+        const speed = parseFloat(el.dataset.parallax || "20");
+        gsap.fromTo(
+          el,
+          { yPercent: speed },
+          {
+            yPercent: -speed,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el.closest("section") || el,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1,
+            },
+          }
+        );
+      });
+
+      // ---------- OTHER DESKTOP-ONLY SCROLL EFFECTS (md and up) ----------
+      // Velocity shear and the pinned horizontal projects rail are disabled on
+      // small screens where they feel janky.
+      gsap.matchMedia().add("(min-width: 768px)", () => {
+        // LIQUID SHEAR: headings tilt with scroll velocity.
+        const shearTargets = gsap.utils.toArray<HTMLElement>(".shear-target");
+        const shearSkewX = shearTargets.map((el) =>
+          gsap.quickTo(el, "skewX", { duration: 0.55, ease: "power3.out" })
+        );
+        const shearSkewY = shearTargets.map((el) =>
+          gsap.quickTo(el, "skewY", { duration: 0.55, ease: "power3.out" })
+        );
+        const shearTick = () => {
+          const shear = gsap.utils.clamp(-5, 5, velocity.current / 220);
+          shearSkewX.forEach((q) => q(shear));
+          shearSkewY.forEach((q) => q(shear * 0.22));
+        };
+        gsap.ticker.add(shearTick);
+
+        // PROJECTS: PINNED HORIZONTAL
+        const projectsSection = document.querySelector("#projects");
+        const track = document.querySelector(".projects-track");
+        if (projectsSection && track) {
+          // The track sits inside a padded container (px-6 md:px-12); the
+          // usable width is the container's content box, not the viewport.
+          const container = (track as HTMLElement).parentElement as HTMLElement | null;
+          const getDistance = () => {
+            if (!container) return 0;
+            const cs = getComputedStyle(container);
+            const padL = parseFloat(cs.paddingLeft) || 0;
+            const padR = parseFloat(cs.paddingRight) || 0;
+            const contentW = container.clientWidth - padL - padR;
+            return Math.max(0, (track as HTMLElement).scrollWidth - contentW);
+          };
+
+          // ONE ScrollTrigger owns the pin + horizontal scrub + progress bar.
+          gsap.to(track, {
+            x: () => -getDistance(),
+            ease: "none",
+            scrollTrigger: {
+              trigger: projectsSection,
+              start: "top top",
+              end: () => "+=" + getDistance(),
+              scrub: 1,
+              pin: true,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                gsap.set(".proj-progress", { scaleX: self.progress });
+              },
+            },
+          });
+
+          // Cards drift for depth (separate non-pinned scrubs).
+          gsap.utils.toArray<HTMLElement>(".project-card").forEach((card) => {
+            const o = card.dataset.offset ? parseInt(card.dataset.offset) : 0;
+            gsap.fromTo(
+              card,
+              { y: o * 0.4 },
+              {
+                y: o * -0.4,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: projectsSection,
+                  start: "top top",
+                  end: () => "+=" + getDistance(),
+                  scrub: 1,
+                },
+              }
+            );
+          });
+        }
+      });
+
+      // ---------- EXPERIENCE TIMELINE SCRUB ----------
+      gsap.from(".exp-line", {
+        scaleY: 0,
+        transformOrigin: "top center",
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#experience",
+          start: "top 75%",
+          end: "bottom 60%",
+          scrub: 1,
+        },
+      });
+
+      gsap.utils.toArray<HTMLElement>(".exp-item").forEach((el) => {
+        gsap.from(el, {
+          x: -60,
+          opacity: 0,
+          duration: 0.9,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+          scrollTrigger: { trigger: el, start: "top 85%" },
+        });
+        const dot = el.querySelector(".exp-dot");
+        if (dot) {
+          gsap.from(dot, {
+            scale: 0,
+            duration: 0.6,
+            ease: "back.out(3)",
+            clearProps: "transform",
+            scrollTrigger: { trigger: el, start: "top 85%" },
+          });
+        }
+      });
+
+      return () => {
+        gsap.ticker.remove(tick);
+        heroSplit?.revert();
+      };
+    }, rootRef);
+
+    // Correct pin-spacer measurements for the settled layout (StrictMode-safe).
+    ScrollTrigger.refresh();
+
+    return () => {
+      ctx.current?.revert();
+      ctx.current = null;
+    };
+  }, []);
+
+  // Liquid glass sheen: track pointer over glass surfaces (rAF-throttled).
+  useEffect(() => {
+    const glasses = gsap.utils.toArray<HTMLElement>(".glass-sheen");
+    let raf = 0;
+
+    const update = (e: PointerEvent) => {
+      raf = 0;
+      for (const el of glasses) {
+        if (!el.isConnected) continue;
+        const r = el.getBoundingClientRect();
+        el.style.setProperty("--gx", `${e.clientX - r.left}px`);
+        el.style.setProperty("--gy", `${e.clientY - r.top}px`);
+      }
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (!raf) raf = requestAnimationFrame(() => update(e));
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // ---------- ACTIVE TAB DETECTION (always on, independent of GSAP) ----------
+  useEffect(() => {
+    const sections = NAV_LINKS.map((l) =>
+      document.getElementById(l.toLowerCase()),
+    ).filter((el): el is HTMLElement => !!el);
+
+    const updateActive = () => {
+      const mid = window.innerHeight * 0.5;
+      let current = "home";
+      for (const s of sections) {
+        if (s.getBoundingClientRect().top <= mid) current = s.id;
+        else break;
+      }
+      setActiveTab((prev) => (prev === current ? prev : current));
+    };
+    updateActive();
+    window.addEventListener("scroll", updateActive, { passive: true });
+    window.addEventListener("resize", updateActive);
+    return () => {
+      window.removeEventListener("scroll", updateActive);
+      window.removeEventListener("resize", updateActive);
+    };
+  }, []);
+
   const toggleTheme = () => {
-    setDarkMode(!darkMode);
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("ra-theme", next ? "dark" : "light");
   };
 
-  // Apply Theme to HTML Tag
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
+  const scrollToSection = (id: string) => {
+    const lenis = (
+      window as unknown as {
+        lenis?: { scrollTo: (target: string, opts?: object) => void };
+      }
+    ).lenis;
+    if (lenis) {
+      lenis.scrollTo("#" + id, { duration: 1.1 });
     } else {
-      document.documentElement.classList.remove('dark');
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [darkMode]);
+  };
 
   return (
-    <div className={`${playfair.variable} ${inter.variable} min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100 overflow-x-hidden transition-colors duration-300`}>
-      
-      {/* --- NAVIGATION --- */}
-      <nav className="fixed w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: false }}
-            className="text-2xl font-bold font-serif text-blue-700 dark:text-blue-400 tracking-tight"
-          >
-            RA.
-          </motion.div>
-          
-          <div className="flex items-center gap-8">
-            <div className="hidden md:flex space-x-8 text-sm font-medium text-slate-600 dark:text-slate-400">
-              {['Home', 'Skills', 'Projects', 'Experience', 'About'].map((item) => (
-                <a 
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors relative group"
-                >
-                  {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all group-hover:w-full"></span>
-                </a>
-              ))}
-            </div>
+    <div
+      ref={rootRef}
+      className={`min-h-screen font-sans overflow-x-hidden bg-slate-100 text-slate-900 dark:bg-[#050507] dark:text-slate-100 transition-colors duration-500`}
+    >
+      <Preloader onComplete={() => undefined} />
+      <CustomCursor />
+      <div className="grain" />
+      <div className="scroll-progress" />
+      <div className="aurora" aria-hidden="true">
+        <div className="aurora-blob aurora-blob-a" />
+        <div className="aurora-blob aurora-blob-b" />
+        <div className="aurora-blob aurora-blob-c" />
+      </div>
 
-            {/* THEME TOGGLE BUTTON */}
-            <button 
-                onClick={toggleTheme} 
-                className="p-2 cursor-pointer rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-110 transition-all duration-300 border border-slate-200 dark:border-slate-700"
-                aria-label="Toggle Dark Mode"
+      {/* ---------- NAV (floating glass capsule) ---------- */}
+      <nav className="ra-nav fixed top-0 inset-x-0 z-50 px-4 pt-4">
+        <div className="glass glass-sheen mx-auto flex w-full max-w-3xl h-16 items-center justify-between rounded-full px-5 md:px-7">
+          <Magnetic>
+            <a
+              href="#home"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("home");
+              }}
+              className="font-display text-2xl font-bold tracking-tight"
             >
-                {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-slate-600" />}
-            </button>
+              RA<span className="text-blue-600 dark:text-blue-400">.</span>
+            </a>
+          </Magnetic>
+
+          <div className="hidden md:block">
+            <Tabs value={activeTab} onValueChange={scrollToSection}>
+              <TabsList tint={0}>
+                {NAV_LINKS.map((item) => (
+                  <TabsTrigger key={item} value={item.toLowerCase()}>
+                    {item}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Magnetic strength={0}>
+              <GlassButton
+                variant="icon"
+                tint={0}
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                suppressHydrationWarning
+              >
+                <span className="hidden dark:inline" aria-hidden="true">
+                  <Sun size={18} />
+                </span>
+                <span className="inline dark:hidden" aria-hidden="true">
+                  <Moon size={18} />
+                </span>
+              </GlassButton>
+            </Magnetic>
           </div>
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section id="home" className="pt-28 pb-12 px-6 max-w-7xl mx-auto min-h-screen flex flex-col-reverse md:flex-row items-center gap-12 md:gap-20">
-        
-        {/* Left: Text Content */}
-        <div className="flex-1 space-y-6">
-            <FadeIn delay={0.1}>
-                <div className="space-y-2">
-                    <h2 className="text-4xl md:text-6xl font-bold font-serif text-slate-900 dark:text-white leading-tight">
-                        Hi, I'm Riyas <br />
-                        <span className="text-blue-700 dark:text-blue-400">Ahamed</span>
-                    </h2>
-                    <h3 className="text-xl md:text-2xl text-blue-600 dark:text-blue-300 font-medium">
+      {/* ---------- HERO ---------- */}
+      <section
+        id="home"
+        className="relative flex min-h-screen flex-col overflow-hidden pt-20 lg:flex-row lg:items-center lg:gap-12 lg:pb-20 lg:pl-6 lg:pr-10 xl:gap-16 xl:pl-16 xl:pr-20 xl:justify-center"
+      >
+        {/* ambient gradient glows */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute inset-0 hidden lg:block bg-gradient-to-l from-transparent via-transparent to-slate-100 dark:to-[#050507]" />
+          <div
+            data-parallax="12"
+            className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-violet-400/20 blur-[120px]"
+          />
+        </div>
+
+        {/* Developer.tsx — liquid glass "Default Card". Stacks below the intro
+            on smaller screens; sits in its own column on desktop so it never
+            overlaps the text. */}
+        <div className="hero-canvas-layer pointer-events-none relative order-2 z-10 lg:order-2 lg:shrink-0">
+          <div className="hero-canvas-wrap mx-auto w-full px-6 pt-1 pb-16 sm:pt-4 lg:mx-0 lg:w-auto lg:px-0 lg:pt-0 lg:pb-0">
+            <div className="relative mx-auto w-full max-w-md lg:mx-0">
+              <GlassCard tint={0} className="code-card relative">
+                <GlassCardHeader className="mb-3 flex !flex-col items-start justify-between gap-3 sm:!flex-row sm:items-center sm:!gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid size-8 place-items-center rounded-xl bg-white/10 text-blue-600 dark:text-blue-400">
+                      <CodeXml size={16} />
+                    </span>
+                    <div className="flex flex-col gap-0.5">
+                      <GlassCardTitle>Developer.tsx</GlassCardTitle>
+                      <GlassCardDescription>
                         Full Stack Software Developer
-                    </h3>
-                </div>
-            </FadeIn>
+                      </GlassCardDescription>
+                    </div>
+                  </div>
+                  <span className="glass glass-clear glass-sheen inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                    Open to work
+                  </span>
+                </GlassCardHeader>
+                <GlassCardContent>
+                  <pre className="overflow-x-auto font-mono text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                    <code>
+                      <span className="text-purple-500 dark:text-purple-400">const</span>{" "}
+                      <span className="text-amber-500 dark:text-yellow-200">Riyas</span>{" "}
+                      <span className="text-purple-500 dark:text-purple-400">=</span>{" "}
+                      <span className="text-blue-500 dark:text-blue-400">{"{"}</span>
+                      {"\n  "}
+                      <span className="text-sky-600 dark:text-sky-300">role:</span>{" "}
+                      <span className="text-emerald-600 dark:text-green-400">
+                        &quot;Full Stack Dev&quot;
+                      </span>
+                      ,
+                      {"\n  "}
+                      <span className="text-sky-600 dark:text-sky-300">experience:</span>{" "}
+                      <span className="text-emerald-600 dark:text-green-400">&quot;2+ years&quot;</span>,
+                      {"\n  "}
+                      <span className="text-sky-600 dark:text-sky-300">skills:</span>{" "}
+                      <span className="text-blue-500 dark:text-blue-400">[</span>
+                      {"\n    "}
+                      <span className="text-emerald-600 dark:text-green-400">&quot;React&quot;</span>,{" "}
+                      <span className="text-emerald-600 dark:text-green-400">&quot;Next.js&quot;</span>,
+                      {"\n    "}
+                      <span className="text-emerald-600 dark:text-green-400">&quot;Node&quot;</span>,{" "}
+                      <span className="text-emerald-600 dark:text-green-400">&quot;SQL&quot;</span>
+                      {"\n  "}
+                      <span className="text-blue-500 dark:text-blue-400">]</span>
+                      {"\n"}
+                      <span className="text-blue-500 dark:text-blue-400">{"}"}</span>;
+                    </code>
+                  </pre>
+                </GlassCardContent>
+              </GlassCard>
 
-            <FadeIn delay={0.2}>
-                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
-                    I build scalable, full-stack applications with <strong>React, Next.js, and Node.js</strong> that deliver exceptional user experiences. 
-                    With 2+ years of experience, I focus on clean code and performance.
-                </p>
-            </FadeIn>
-
-            <FadeIn delay={0.3}>
-                <div className="flex flex-wrap gap-4 pt-2">
-                    <a 
-                        href="#projects"
-                        className="px-8 py-3 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-full shadow-lg shadow-blue-600/20 hover:bg-blue-700 dark:hover:bg-blue-600 hover:shadow-xl hover:-translate-y-1 transition-all"
-                    >
-                        View my work →
-                    </a>
-                    <a 
-                        href="/resume.pdf" 
-                        target="_blank"
-                        className="px-8 py-3 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium rounded-full hover:border-blue-600 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all flex items-center gap-2"
-                    >
-                        Download Resume <Download size={18} />
-                    </a>
+              {/* status box — glass card */}
+              <GlassCard tint={0} className="code-card-badge absolute -bottom-7 right-2 sm:-right-6">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-11 place-items-center rounded-2xl bg-green-500/15 text-green-600 dark:text-green-400">
+                    <CodeXml size={20} />
+                  </span>
+                  <div className="flex flex-col gap-0.5">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-white/55">
+                      Status
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                      Open to Work
+                    </div>
+                  </div>
                 </div>
-            </FadeIn>
-
-            <FadeIn delay={0.4}>
-                <div className="pt-4 flex gap-4">
-                    <SocialIcon href="https://github.com/riyasahamed27" icon={<Github size={20}/>} />
-                    <SocialIcon href="https://linkedin.com/in/riyas-ahamed-dev" icon={<Linkedin size={20}/>} />
-                    <SocialIcon href="mailto:riyasahamed82478@gmail.com" icon={<Mail size={20}/>} />
-                </div>
-            </FadeIn>
+              </GlassCard>
+            </div>
+          </div>
         </div>
 
-        {/* Right: Floating Code Editor */}
-        <div className="flex-1 w-full max-w-md relative">
-            <FadeIn delay={0.2} direction="right">
-                <div className="relative">
-                    <motion.div 
-                        animate={{ opacity: [0.2, 0.4, 0.2] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur-xl"
-                    ></motion.div>
-                    
-                    <motion.div 
-                      animate={{ 
-                          y: [0, -15, 0],           
-                          rotate: [0, 1.5, 0],      
-                      }}
-                      transition={{ 
-                          duration: 8,              
-                          repeat: Infinity, 
-                          ease: [0.45, 0, 0.55, 1]  
-                      }}
-                      className="relative bg-slate-900 rounded-xl shadow-2xl overflow-hidden border border-slate-800"
-                    >
-                        <div className="bg-slate-800/50 px-4 py-3 flex items-center gap-2 border-b border-slate-700/50">
-                            <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                            <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                            <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                            <div className="ml-4 text-xs text-slate-400 font-mono">Developer.tsx</div>
-                        </div>
-
-                        <div className="p-6 overflow-x-auto">
-                            <pre className="font-mono text-sm leading-relaxed text-slate-300">
-                                <code>
-                                    <span className="text-purple-400">const</span> <span className="text-yellow-200">Riyas</span> <span className="text-purple-400">=</span> <span className="text-blue-400">{"{"}</span>{'\n'}
-                                    {'  '}<span className="text-sky-300">role:</span> <span className="text-green-400">"Full Stack Dev"</span>,{'\n'}
-                                    {'  '}<span className="text-sky-300">experience:</span> <span className="text-green-400">"2+ years"</span>,{'\n'}
-                                    {'  '}<span className="text-sky-300">skills:</span> <span className="text-blue-400">[</span>{'\n'}
-                                    {'    '}<span className="text-green-400">"React"</span>, <span className="text-green-400">"Next.js"</span>,{'\n'}
-                                    {'    '}<span className="text-green-400">"Node"</span>, <span className="text-green-400">"SQL"</span>{'\n'}
-                                    {'  '}<span className="text-blue-400">]</span>{'\n'}
-                                    <span className="text-blue-400">{"}"}</span>;
-                                </code>
-                            </pre>
-                        </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                        animate={{ y: [0, -10, 0] }}
-                        transition={{ duration: 7, delay: 1, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -bottom-6 -right-6 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-3"
-                    >
-                        <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full text-green-600 dark:text-green-400">
-                            <Code2 size={20} />
-                        </div>
-                        <div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Status</div>
-                            <div className="text-sm font-bold text-slate-800 dark:text-slate-200">Open to Work</div>
-                        </div>
-                    </motion.div>
-                </div>
-            </FadeIn>
-        </div>
-      </section>
-
-      {/* --- SKILLS SECTION --- */}
-      <section id="skills" className="py-16 bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden transition-colors">
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          
-          <FadeIn>
-            <h2 className="text-4xl font-serif font-bold text-slate-900 dark:text-white mb-4">Skills & Technologies</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto mb-12">
-              The professional stack I use to build scalable, production-ready applications.
+        {/* overlay content */}
+        <div className="hero-content relative order-1 z-20 mx-auto w-full min-w-0 px-6 pt-16 md:pt-24 pb-6 flex flex-col justify-center lg:mx-0 lg:flex-1 lg:px-0 lg:pt-0 lg:pb-0 xl:flex-none xl:w-auto">
+          <div className="max-w-2xl">
+            <p className="hero-badge glass glass-sheen mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-slate-700 dark:text-slate-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+              Available for work
             </p>
-          </FadeIn>
-          
-          <div className="mb-12">
-            <FadeIn delay={0.1}>
-              <h3 className="text-2xl font-serif font-bold text-blue-900 dark:text-blue-300 mb-8">Full Stack Engineering</h3>
-            </FadeIn>
-            
-            <div className="flex flex-wrap justify-center gap-6">
-               <SkillIcon name="React" icon={<SiReact />} color="text-[#61DAFB]" delay={0.1} />
-               <SkillIcon name="Next.js" icon={<SiNextdotjs />} color="text-black dark:text-white" delay={0.15} />
-               <SkillIcon name="TypeScript" icon={<SiTypescript />} color="text-[#3178C6]" delay={0.2} />
-               <SkillIcon name="Tailwind CSS" icon={<SiTailwindcss />} color="text-[#06B6D4]" delay={0.25} />
-               <SkillIcon name="JavaScript" icon={<SiJavascript />} color="text-[#F7DF1E]" delay={0.3} />
-               
-               <SkillIcon name="Node.js" icon={<SiNodedotjs />} color="text-[#339933]" delay={0.35} />
-               <SkillIcon name="Express.js" icon={<SiExpress />} color="text-black dark:text-white" delay={0.4} />
-               <SkillIcon name="PHP" icon={<SiPhp />} color="text-[#777BB4]" delay={0.45} />
-               <SkillIcon name="Laravel" icon={<SiLaravel />} color="text-[#FF2D20]" delay={0.5} />
-               
-               <SkillIcon name="PostgreSQL" icon={<SiPostgresql />} color="text-[#4169E1]" delay={0.6} />
-               <SkillIcon name="MySQL" icon={<SiMysql />} color="text-[#4479A1]" delay={0.65} />
-               <SkillIcon name="MongoDB" icon={<SiMongodb />} color="text-[#47A248]" delay={0.7} />
-               <SkillIcon name="AWS" icon={<SiAmazon />} color="text-[#FF9900]" delay={0.75} />
-               <SkillIcon name="Docker" icon={<SiDocker />} color="text-[#2496ED]" delay={0.8} />
+
+            <h1 className="hero-name shear-target font-display text-[11vw] leading-[0.95] font-bold tracking-tight whitespace-nowrap sm:text-7xl lg:text-6xl xl:text-7xl 2xl:text-8xl text-slate-900 dark:text-white">
+              RIYAS AHAMED
+            </h1>
+
+            <p className="hero-subs mt-6 text-lg md:text-xl font-medium text-slate-700 dark:text-slate-300">
+              Full Stack Software Developer
+            </p>
+            <p className="hero-subs mt-3 max-w-xl leading-relaxed text-slate-600 dark:text-slate-400">
+              I build scalable, full-stack applications with{" "}
+              <strong className="text-slate-900 dark:text-white">
+                React, Next.js, and Node.js
+              </strong>{" "}
+              that deliver exceptional user experiences — clean code, real
+              performance.
+            </p>
+
+            <div className="hero-cta mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <Magnetic strength={0} className="shrink-0">
+                <GlassButton
+                  variant="capsule"
+                  tint={0}
+                  onClick={() => scrollToSection("projects")}
+                >
+                  View my work <span aria-hidden>→</span>
+                </GlassButton>
+              </Magnetic>
+              <Magnetic strength={0} className="shrink-0">
+                <GlassButton
+                  variant="capsule"
+                  tint={0}
+                  href="/resume.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Resume <Download size={16} />
+                </GlassButton>
+              </Magnetic>
+            </div>
+
+            <div className="hero-socials mt-8 flex items-center gap-3">
+              {SOCIALS.map((s) => (
+                <Magnetic key={s.label} strength={0}>
+                  <GlassButton
+                    variant="icon"
+                    tint={0}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                  >
+                    <s.icon size={18} />
+                  </GlassButton>
+                </Magnetic>
+              ))}
             </div>
           </div>
+        </div>
 
-          <div>
-            <FadeIn delay={0.6}>
-              <h3 className="text-2xl font-serif font-bold text-purple-900 dark:text-purple-300 mb-8">AI & Machine Learning</h3>
-            </FadeIn>
-            
-            <div className="flex flex-wrap justify-center gap-6">
-               <SkillIcon name="Python" icon={<SiPython />} color="text-[#3776AB]" delay={0.8} />
-               <SkillIcon name="TensorFlow" icon={<SiTensorflow />} color="text-[#FF6F00]" delay={0.85} />
-               <SkillIcon name="OpenCV" icon={<SiOpencv />} color="text-[#5C3EE8]" delay={0.9} />
+        {/* scroll down cue (text only, no navigation) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-8 left-1/2 z-30 hidden -translate-x-1/2 flex-col items-center gap-2 text-slate-500 dark:text-slate-400 md:flex"
+        >
+          <span className="text-[10px] font-bold uppercase tracking-[0.35em]">
+            Scroll Down
+          </span>
+          <ArrowDown size={18} className="animate-bounce" />
+        </div>
+      </section>
+
+      {/* ---------- MARQUEE ---------- */}
+      <div className="glass glass-clear glass-sheen relative z-20 overflow-hidden py-6 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
+        <div className="marquee-track flex w-max items-center gap-12 pr-12 whitespace-nowrap">
+          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+            <span key={i} className="inline-flex items-center gap-12 whitespace-nowrap">
+              <span className="marquee-word font-display text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-600 to-violet-600 dark:from-sky-300 dark:via-blue-400 dark:to-violet-400">
+                {item}
+              </span>
+              <span className="text-lg text-blue-500">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ---------- SKILLS ---------- */}
+      <section id="skills" className="relative py-24 md:py-32">
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            data-parallax="18"
+            className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-blue-500/15 blur-[110px]"
+          />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl px-6">
+          <div className="flex flex-wrap items-center gap-5">
+            <span className="section-index text-blue-600 dark:text-blue-400">
+              (01)
+            </span>
+            <h2 className="shear-target font-display text-4xl md:text-6xl font-bold tracking-tight">
+              <SplitReveal text="Skills & Technologies" mode="words" />
+            </h2>
+            <span className="h-px flex-1 bg-slate-900/10 dark:bg-white/10" />
+          </div>
+
+          <div className="mt-14 grid gap-12 md:grid-cols-2">
+            <div>
+              <h3 className="reveal font-display text-lg font-semibold text-slate-700 dark:text-slate-300">
+                Full Stack Engineering
+              </h3>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {FULLSTACK_SKILLS.map((s) => (
+                  <SkillChip key={s.name} {...s} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="reveal font-display text-lg font-semibold text-slate-700 dark:text-slate-300">
+                AI &amp; Machine Learning
+              </h3>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {AISKILLS.map((s) => (
+                  <SkillChip key={s.name} {...s} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROJECTS (PINNED HORIZONTAL) ---------- */}
+      <section
+        id="projects"
+        className="relative h-screen overflow-hidden bg-white/40 dark:bg-white/[0.02] max-md:h-auto max-md:min-h-screen max-md:overflow-visible"
+      >
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent_70%)] dark:bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.14),transparent_70%)]" />
+          <div
+            data-parallax="14"
+            className="absolute top-24 right-0 h-72 w-72 rounded-full bg-blue-400/10 blur-[100px]"
+          />
+        </div>
+
+        <div className="projects-scroller flex h-screen flex-col justify-center overflow-visible px-6 md:px-12 max-md:h-auto max-md:min-h-screen max-md:overflow-x-auto max-md:py-6">
+          <div className="mb-10 flex flex-wrap items-center gap-5">
+            <span className="section-index text-blue-600 dark:text-blue-400">
+              (02)
+            </span>
+            <h2 className="shear-target font-display text-4xl md:text-6xl font-bold tracking-tight">
+              <SplitReveal text="Featured Projects" mode="words" />
+            </h2>
+            <span className="h-px flex-1 bg-slate-900/10 dark:bg-white/10" />
+          </div>
+
+          <div className="projects-track flex w-max items-stretch gap-6 md:gap-8 md:will-change-transform">
+            {PROJECTS.map((p) => (
+              <ProjectCard key={p.title} {...p} />
+            ))}
+          </div>
+
+          <div className="mt-10 flex items-center gap-4">
+            <span className="w-40 md:w-64 h-px bg-slate-900/10 dark:bg-white/10 overflow-hidden">
+              <span className="proj-progress block h-px w-full bg-blue-500 origin-left scale-x-0 max-md:scale-x-100" />
+            </span>
+            <span className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-500">
+              <span className="md:hidden">Swipe →</span>
+              <span className="hidden md:inline">Keep scrolling →</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- EXPERIENCE ---------- */}
+      <section id="experience" className="relative py-24 md:py-32">
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            data-parallax="16"
+            className="absolute bottom-1/4 -left-24 h-72 w-72 rounded-full bg-blue-400/10 blur-[100px]"
+          />
+        </div>
+
+        <div className="relative mx-auto max-w-4xl px-6">
+          <div className="flex flex-wrap items-center gap-5">
+            <span className="section-index text-blue-600 dark:text-blue-400">
+              (03)
+            </span>
+            <h2 className="shear-target font-display text-4xl md:text-6xl font-bold tracking-tight">
+              <SplitReveal text="Experience" mode="words" />
+            </h2>
+            <span className="h-px flex-1 bg-slate-900/10 dark:bg-white/10" />
+          </div>
+
+          <div className="relative mt-14 pl-8">
+            <div className="exp-line absolute left-1.5 top-2 bottom-2 w-px bg-gradient-to-b from-blue-500 via-blue-500 to-transparent" />
+            <div className="space-y-10">
+              {EXPERIENCE.map((exp) => (
+                <ExpItem key={exp.company + exp.date} {...exp} />
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* --- PROJECTS SECTION --- */}
-      <section id="projects" className="py-16 bg-slate-50 dark:bg-slate-950 transition-colors">
-        <div className="max-w-7xl mx-auto px-6">
-            <SectionHeader title="Featured Projects" subtitle="Highlighted work showcasing technical expertise" />
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                 <ProjectCard
-                     title="Swypatune"
-                     desc="Full-stack contest platform for video/audio content featuring monetization, push notifications, and payment processing."
-                     tags={['Laravel', 'Ionic', 'Stripe']}
-                     image="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                     links={[
-                       { label: 'Google Play', href: 'https://play.google.com/store/apps/details?id=com.swypeglobal&hl=en_IN&pli=1' },
-                       { label: 'App Store', href: 'https://apps.apple.com/in/app/swypatune-global/id6737972162' },
-                     ]}
-                     delay={0.6}
-                 />
-                 <ProjectCard
-                     title="WeAreWear"
-                     desc="A modern SEO-optimized e-commerce platform built with Next.js, featuring a responsive storefront and scalable Express.js REST APIs. Integrated MongoDB for secure authentication, product management, and cart functionality, delivering a smooth and efficient shopping experience."
-                     tags={['Next.js', 'Express.js', 'Node.js', 'MongoDB', 'REST APIs']}
-                     image="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                     links={[{ label: 'Visit Website', href: 'https://www.wearewear.ai' }]}
-                     delay={0.8}
-                 />
-                 <ProjectCard 
-                     title="Lovu Travel"
-                     desc="A cross-platform travel marketplace designed for couples, connecting travelers with hotels, travel advisors, and experience providers. Built personalized trip-planning features with secure payments and a scalable backend to deliver a seamless travel booking experience."
-                     tags={['React.js', 'Firebase', 'Stripe', 'Laravel', 'MySQL']}
-                     image="https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                     links={[{ label: 'Visit Website', href: 'https://lovu.travel' }]}
-                     delay={1}
-                 />
-                <ProjectCard 
-                    title="Taka Solutions"
-                    desc="Interactive dashboard for real-time visualization of electricity consumption across Dubai buildings with dynamic reporting."
-                    tags={['Next.js', 'Django', 'Chart.js']}
-                    image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                    links={[{ label: 'Visit Website', href: 'https://takasolutions.com' }]}
-                    delay={0.4}
-                />
-                <ProjectCard 
-                    title="AI Fashion Platform"
-                    desc="Architected a full-stack web app generating personalized outfit suggestions using AI-based image analysis and machine learning algorithms."
-                    tags={['React', 'Node.js', 'Python', 'AI/ML']}
-                    image="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                    delay={0}
-                />
-                <ProjectCard 
-                    title="Ribatis Mobile"
-                    desc="Secure government communication app with end-to-end encrypted chat and audio/video conferencing using Matrix SDK."
-                    tags={['React Native', 'WebRTC', 'Matrix SDK']}
-                    image="https://images.unsplash.com/photo-1616348436168-de43ad0db179?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                    delay={0.2}
-                />
-            </div>
+      {/* ---------- ABOUT / CONTACT ---------- */}
+      <section
+        id="about"
+        className="relative overflow-hidden border-t border-slate-900/5 dark:border-white/5 py-24 md:py-32"
+      >
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            data-parallax="20"
+            className="absolute -bottom-40 left-1/2 -translate-x-1/2 h-96 w-[720px] rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-500/20 blur-[120px]"
+          />
         </div>
-      </section>
 
-      {/* --- EXPERIENCE SECTION --- */}
-      <section id="experience" className="py-16 bg-white dark:bg-slate-900 transition-colors">
-        <div className="max-w-4xl mx-auto px-6">
-          <SectionHeader title="Experience" subtitle="My professional journey and key achievements" />
-          
-          <div className="relative mt-8 space-y-8">
-            <motion.div 
-                initial={{ height: 0 }}
-                whileInView={{ height: '100%' }}
-                viewport={{ once: false }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
-                className="absolute left-4 top-0 w-0.5 bg-blue-100 dark:bg-blue-900"
-            ></motion.div>
-
-            <ExperienceCard 
-                role="Junior Software Developer"
-                company="RedBlox.io"
-                date="Feb 2024 - Present"
-                items={[
-                    "Developed and deployed 6+ full-stack web applications serving 10,000+ active users.",
-                    "Architected secure user authentication systems (RBAC) using JWT and OAuth 2.0 protocols.",
-                    "Optimized frontend performance, achieving a 20% improvement in page load times."
-                ]}
-                tech={['React', 'Next.js', 'Node.js', 'MySQL']}
-                delay={0.1}
-            />
-
-            <ExperienceCard 
-                role="Software Development Intern"
-                company="RedBlox.io"
-                date="2020 - 2023"
-                items={[
-                    "Developed web modules using React.js, Express.js, and MySQL.",
-                    "Implemented backend APIs and user authentication flows.",
-                    "Strong performance led to a full-time offer."
-                ]}
-                tech={['React', 'Express', 'API Design']}
-                delay={0.3}
-            />
-             <ExperienceCard 
-                role="Full Stack Intern"
-                company="Twilight IT Solution"
-                date="Internship"
-                items={[
-                    "Gained hands-on experience in full-stack development.",
-                    "Worked with HTML, CSS, JavaScript, PHP, MySQL, React.js, and MongoDB."
-                ]}
-                tech={['PHP', 'MySQL', 'React']}
-                delay={0.5}
-            />
+        <div className="relative mx-auto max-w-3xl px-6 text-center">
+          <div className="flex items-center justify-center gap-5 flex-wrap">
+            <span className="h-px min-w-8 flex-1 bg-slate-900/10 dark:bg-white/10" />
+            <span className="section-index text-blue-600 dark:text-blue-400">
+              (04)
+            </span>
+            <h2 className="shear-target font-display text-4xl md:text-6xl font-bold tracking-tight">
+              <SplitReveal text="The Developer" mode="words" />
+            </h2>
+            <span className="h-px min-w-8 flex-1 bg-slate-900/10 dark:bg-white/10" />
           </div>
-        </div>
-      </section>
 
-      {/* --- ABOUT / FOOTER --- */}
-      <section id="about" className="py-16 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 transition-colors">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-            <FadeIn>
-                <h2 className="text-4xl font-serif font-bold text-slate-900 dark:text-white mb-6 relative inline-block">
-                    About Me
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
-                </h2>
-            </FadeIn>
-            
-            <div className="grid md:grid-cols-2 gap-8 text-left mt-8">
-                <FadeIn delay={0.2} direction="left">
-                    <div>
-                        <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-4">Background</h3>
-                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            I'm a passionate developer who started coding out of curiosity and turned it into a career. 
-                            I love building things that work fast, look clean, and solve real problems.
-                        </p>
-                    </div>
-                </FadeIn>
-                <FadeIn delay={0.2} direction="right">
-                    <div>
-                        <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-4">Beyond Coding</h3>
-                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            When I'm not shipping code, I'm exploring new AI tools, contributing to open source, 
-                            or optimizing my workflow. Curiosity keeps me alive.
-                        </p>
-                    </div>
-                </FadeIn>
+          <p className="reveal mt-8 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+            I&apos;m a passionate developer who started coding out of curiosity
+            and turned it into a career. I love building things that work fast,
+            look clean, and solve real problems. When I&apos;m not shipping
+            code, I&apos;m exploring new AI tools or optimizing my workflow.
+          </p>
+
+          <SplitReveal
+            text="“I architect secure, scalable solutions that serve thousands of users reliably.”"
+            mode="words"
+            stagger={0.04}
+            className="mt-10 block font-display text-2xl md:text-3xl italic text-blue-700 dark:text-blue-300"
+          />
+
+<div className="reveal mt-12 flex flex-col items-center gap-6">
+              <Magnetic strength={0} className="shrink-0">
+                <GlassButton
+                  variant="capsule"
+                  tint={0}
+                  href="mailto:riyasahamed82478@gmail.com"
+                  className="px-4"
+                >
+                  Let&apos;s work together
+                  <ExternalLink size={16} />
+                </GlassButton>
+              </Magnetic>
+
+              <div className="flex items-center gap-3">
+                {SOCIALS.map((s) => (
+                  <Magnetic key={s.label} strength={0}>
+                    <GlassButton
+                      variant="icon"
+                      tint={0}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.label}
+                    >
+                      <s.icon size={18} />
+                    </GlassButton>
+                  </Magnetic>
+                ))}
+              </div>
+
             </div>
-            
-            <FadeIn delay={0.4}>
-                <p className="mt-12 text-xl font-serif text-blue-600 dark:text-blue-300 italic">
-                    "I architect secure, scalable solutions that improve performance and serve thousands of users reliably."
-                </p>
-            </FadeIn>
-
-            <FadeIn delay={0.6}>
-                <div className="mt-12 pt-10 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center">
-                    <p className="text-slate-500 dark:text-slate-500 text-sm mb-4">Designed & Built by Riyas Ahamed</p>
-                    <div className="flex gap-4">
-                        <SocialIcon href="https://github.com/riyasahamed27" icon={<Github size={18} />} />
-                        <SocialIcon href="https://linkedin.com/in/riyas-ahamed-963a96281" icon={<Linkedin size={18} />} />
-                    </div>
-                </div>
-            </FadeIn>
         </div>
       </section>
     </div>
   );
 }
 
-// --- SUB COMPONENTS (Dark Mode Enhanced) ---
+/* ---------- TYPES ---------- */
 
-function FadeIn({ 
-    children, 
-    delay = 0, 
-    direction = "up", 
-    className 
-}: { 
-    children: React.ReactNode, 
-    delay?: number, 
-    direction?: "up" | "down" | "left" | "right", 
-    className?: string 
+type Skill = {
+  name: string;
+  icon: IconType;
+  color: string;
+};
+
+/* ---------- SUB COMPONENTS ---------- */
+
+function SkillChip({ name, icon: Icon, color }: Skill) {
+  return (
+    <div className="skill-chip group transition-all hover:-translate-y-1 hover:drop-shadow-lg">
+      <GlassSurface
+        tint={0}
+        radius={16}
+        contentClassName="flex items-center gap-3 px-5 py-3.5"
+      >
+        <span className="text-2xl transition-transform duration-300 group-hover:scale-125">
+          <Icon color={color} size={26} />
+        </span>
+        <span className="relative z-10 text-sm font-medium text-slate-700 dark:text-slate-300">
+          {name}
+        </span>
+      </GlassSurface>
+    </div>
+  );
+}
+
+function ProjectCard({
+  title,
+  desc,
+  tags,
+  image,
+  links,
+  offset,
+}: {
+  title: string;
+  desc: string;
+  tags: string[];
+  image: string;
+  links: { label: string; href: string }[];
+  offset: number;
 }) {
-    const directions = {
-        up: { y: 40, x: 0 },
-        down: { y: -40, x: 0 },
-        left: { x: 40, y: 0 },
-        right: { x: -40, y: 0 }
-    };
+  const fallback =
+    "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1000&q=80";
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, ...directions[direction] }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
-            viewport={{ once: false, margin: "-50px" }}
-            transition={{ duration: 0.6, delay, type: "spring", stiffness: 50 }}
-            className={className}
-        >
-            {children}
-        </motion.div>
-    )
-}
-
-function SectionHeader({ title, subtitle }: { title: string, subtitle: string }) {
-    return (
-        <div className="text-center mb-10 space-y-2">
-            <FadeIn>
-                <h2 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">{title}</h2>
-            </FadeIn>
-            <FadeIn delay={0.2}>
-                <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg">{subtitle}</p>
-            </FadeIn>
-        </div>
-    )
-}
-
-function SocialIcon({ href, icon }: { href: string; icon: React.ReactNode }) {
   return (
-    <a 
-      href={href} 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-900 dark:hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-300"
+    <article
+      data-offset={offset}
+      className="project-card group relative flex w-[82vw] md:w-[30rem] shrink-0 flex-col overflow-hidden rounded-3xl transition-shadow duration-500 hover:shadow-2xl hover:shadow-blue-500/10"
     >
-      {icon}
-    </a>
+      {/* liquid-glass pane — shows through the card's transparent areas */}
+      <GlassSurface
+        tint={0}
+        radius={24}
+        className="pointer-events-none absolute inset-0"
+      />
+
+      <div className="relative flex flex-1 flex-col p-4 md:p-6">
+        {/* crisp image window — no frost, the photo stays sharp */}
+        <div className="relative overflow-hidden rounded-2xl">
+          <img
+            src={image}
+            alt={title}
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = fallback;
+            }}
+            className="max-md:h-44 h-52 md:h-60 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <span className="absolute top-4 left-4 rounded-full bg-white/10 backdrop-blur-md px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+            0{PROJECTS.findIndex((p) => p.title === title) + 1}
+          </span>
+        </div>
+
+        <div className="mt-5 flex flex-1 flex-col">
+          <h3 className="font-display text-xl font-bold transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+            {title}
+          </h3>
+          <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            {desc}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="glass glass-sheen rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-md:dark:bg-white/10"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          {links.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-900/10 dark:border-white/10 pt-5">
+              {links.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass glass-sheen inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 max-md:dark:bg-white/10"
+                >
+                  {link.label}
+                  <ExternalLink size={13} />
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 
-function SkillIcon({ name, icon, color, delay }: { name: string; icon: React.ReactNode; color: string, delay: number }) {
+function ExpItem({
+  role,
+  company,
+  date,
+  items,
+  tech,
+}: {
+  role: string;
+  company: string;
+  date: string;
+  items: string[];
+  tech: string[];
+}) {
   return (
-    <FadeIn delay={delay}>
-        <motion.div 
-            whileHover={{ y: -8 }}
-            className="group relative flex items-center justify-center w-24 h-24 md:w-28 md:h-28 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] dark:shadow-none dark:border-slate-700 transition-all cursor-default border border-slate-50 dark:border-slate-700"
-        >
-            <div className={`transform transition-transform duration-300 group-hover:scale-110 ${color} text-4xl md:text-5xl`}>
-                {icon}
-            </div>
-            <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold py-1.5 px-3 rounded-lg whitespace-nowrap shadow-lg pointer-events-none z-20">
-                {name}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 dark:bg-white rotate-45"></div>
-            </div>
-        </motion.div>
-    </FadeIn>
+    <div className="exp-item relative">
+      <span className="exp-dot absolute -left-8 top-6 h-3.5 w-3.5 rounded-full border-2 border-blue-500 bg-slate-100 dark:bg-[#050507]" />
+      <GlassSurface
+        tint={0}
+        radius={24}
+        contentClassName="p-6 transition-all"
+        className="transition-all hover:-translate-y-0.5"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h4 className="font-display text-lg font-bold">{role}</h4>
+            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              {company}
+            </p>
+          </div>
+          <span className="glass glass-sheen rounded-full px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+            {date}
+          </span>
+        </div>
+        <ul className="mt-4 space-y-2">
+          {items.map((item, i) => (
+            <li
+              key={i}
+              className="flex gap-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400"
+            >
+              <span className="mt-1 text-blue-500">•</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {tech.map((t) => (
+            <span
+              key={t}
+              className="glass glass-sheen rounded-md px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      </GlassSurface>
+    </div>
   );
-}
-
-function ProjectCard({ title, desc, tags, image, imageFit = 'cover', links, delay }: { title: string; desc: string; tags: string[]; image: string; imageFit?: 'cover' | 'contain'; links?: { label: string; href: string }[]; delay: number }) {
-  return (
-    <FadeIn delay={delay}>
-        <motion.div 
-            whileHover={{ y: -5 }}
-            className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-lg dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col h-full group"
-        >
-            <div className="h-48 overflow-hidden relative bg-slate-100 dark:bg-slate-800">
-                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors z-10" />
-                <img 
-                    src={image} 
-                    alt={title} 
-                    className={`w-full h-full ${imageFit === 'cover' ? 'object-cover group-hover:scale-110' : 'object-contain'} transform transition-transform duration-700`}
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1000&q=80";
-                    }}
-                />
-            </div>
-            <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {title}
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6 flex-grow">
-                    {desc}
-                </p>
-                 <div className="flex flex-wrap gap-2 mt-auto">
-                     {tags.map(tag => (
-                         <span key={tag} className="px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-full">
-                             {tag}
-                         </span>
-                     ))}
-                 </div>
-                 {links && (
-                     <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
-                         {links.map(link => (
-                             <a
-                                 key={link.href}
-                                 href={link.href}
-                                 target="_blank"
-                                 rel="noopener noreferrer"
-                                 className="group inline-flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-900/70 bg-blue-50 dark:bg-blue-950/40 px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:hover:border-blue-500 dark:hover:bg-blue-500"
-                             >
-                                 {link.label} <ExternalLink size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
-                             </a>
-                         ))}
-                     </div>
-                 )}
-             </div>
-        </motion.div>
-    </FadeIn>
-  );
-}
-
-function ExperienceCard({ role, company, date, items, tech, delay }: { role: string; company: string; date: string; items: string[]; tech: string[], delay: number }) {
-    return (
-        <FadeIn delay={delay} direction="left">
-            <div className="relative pl-12 group">
-                <motion.div 
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: false }}
-                    className="absolute left-[9px] top-6 w-3.5 h-3.5 bg-white dark:bg-slate-900 border-4 border-blue-600 dark:border-blue-500 rounded-full z-10"
-                ></motion.div>
-
-                <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md dark:shadow-none transition-shadow">
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-4">
-                        <div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{role}</h3>
-                            <p className="text-blue-600 dark:text-blue-400 font-medium">{company}</p>
-                        </div>
-                        <span className="px-4 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-xs font-medium rounded-full w-fit">
-                            {date}
-                        </span>
-                    </div>
-                    
-                    <ul className="space-y-2 mb-6">
-                        {items.map((item, i) => (
-                            <li key={i} className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed flex gap-2">
-                                <span className="text-blue-400 mt-1.5">•</span>
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-
-                    <div className="flex flex-wrap gap-2">
-                        {tech.map(t => (
-                            <span key={t} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-md">
-                                {t}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </FadeIn>
-    )
 }

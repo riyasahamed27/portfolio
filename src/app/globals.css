@@ -1,33 +1,451 @@
 @import "tailwindcss";
 
-/* 👇 ADD THIS LINE TO ENABLE CLASS-BASED DARK MODE */
 @variant dark (&:where(.dark, .dark *));
 
-/* ... keep your other css below if you have any ... */
 @theme {
-  --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
+  --font-sans: var(--font-display);
+  --font-display: var(--font-display);
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f5f7;
+  --foreground: #0a0a0f;
 }
 
 html {
-  scroll-behavior: smooth;
   scroll-padding-top: 6rem;
 }
 
-.dark {
-  --background: #020617; /* slate-950 */
-  --foreground: #ededed;
+/* Lenis drives scrolling when active — native scroll-behavior fights it and
+   breaks ScrollTrigger measurements, causing blank gaps/jumps while scrolling. */
+html:not(.lenis) {
+  scroll-behavior: smooth;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+html.dark {
+  --background: #050507;
+  --foreground: #eceef3;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+  color: inherit;
+}
+
+/* ---------- CUSTOM SCROLLBAR ---------- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #60a5fa, #a78bfa);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ---------- FILM GRAIN ---------- */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 0.9s steps(6) infinite;
+}
+
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -2%); }
+  80% { transform: translate(3%, 3%); }
+}
+
+/* ---------- HERO CODE CARD FLOAT ---------- */
+.code-card {
+  animation: code-card-float 8s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes code-card-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1.5deg); }
+}
+
+.code-card-glow {
+  animation: code-card-glow 5s ease-in-out infinite;
+}
+
+@keyframes code-card-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.code-card-badge {
+  animation: code-card-badge 7s ease-in-out 1s infinite;
+  will-change: transform;
+}
+
+@keyframes code-card-badge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Keep the hero cards steady on small screens — the float/tilt reads as
+   broken against narrow viewports, especially with the overlapping badge. */
+@media (max-width: 639px) {
+  .code-card,
+  .code-card-badge {
+    animation: none;
+  }
+}
+
+/* ---------- AURORA ---------- */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.aurora-blob {
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.3;
+  will-change: transform;
+}
+
+/* Three blobs positioned across the canvas. Colours are driven by GSAP
+   scrub per section via CSS variables. */
+.aurora-blob-a {
+  top: -15%;
+  left: -15%;
+  background: radial-gradient(circle at 30% 30%, var(--au-a, #60a5fa), transparent 65%);
+}
+.aurora-blob-b {
+  top: 10%;
+  right: -20%;
+  background: radial-gradient(circle at 60% 40%, var(--au-b, #a78bfa), transparent 65%);
+}
+.aurora-blob-c {
+  bottom: -20%;
+  left: 25%;
+  background: radial-gradient(circle at 50% 60%, var(--au-c, #f472b6), transparent 65%);
+}
+
+html:not(.dark) .aurora-blob {
+  opacity: 0.22;
+}
+
+@media (pointer: coarse) {
+  .aurora-blob { filter: blur(60px); opacity: 0.2; }
+}
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(4%, -3%, 0) scale(1.08); }
+  66%  { transform: translate3d(-3%, 4%, 0) scale(0.96); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.aurora-blob {
+  animation: aurora-drift 26s ease-in-out infinite;
+}
+.aurora-blob-b {
+  animation-delay: -9s;
+}
+.aurora-blob-c {
+  animation-delay: -17s;
+}
+
+/* Liquid shear targets */
+.shear-target {
+  will-change: transform;
+}
+
+/* ---------- MARQUEE GRADIENT WORDS ---------- */
+.marquee-word {
+  background-size: 200% auto;
+  animation: marquee-glow 6s linear infinite;
+}
+
+@keyframes marquee-glow {
+  0% { background-position: 0% center; }
+  100% { background-position: -200% center; }
+}
+
+/* ---------- LIQUID GLASS (Apple-style) ---------- */
+.glass {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.04)
+  );
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.04),
+    0 24px 48px -16px rgba(0, 0, 0, 0.45);
+}
+
+/* Don't let the relative position override Tailwind's own positioning
+   utilities (absolute/fixed/sticky) used alongside .glass. */
+.glass.absolute {
+  position: absolute;
+}
+.glass.fixed {
+  position: fixed;
+}
+.glass.sticky {
+  position: sticky;
+}
+
+html:not(.dark) .glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.38),
+    rgba(255, 255, 255, 0.14)
+  );
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.18),
+    0 24px 48px -16px rgba(23, 37, 84, 0.18);
+}
+
+/* Zero-tint glass: keep the blur/border/sheen but drop the tinted fill.
+   Defined after .glass so the equal-specificity rule wins in dark, and the
+   html:not(.dark) variant beats the light-mode override. */
+.glass-zero-tint,
+html:not(.dark) .glass-zero-tint {
+  background: transparent;
+}
+
+/* Clear-glass variant for floating hero elements: drop the tinted fill and the
+   aggressive saturation boost so nothing nearby shifts toward blue. */
+.glass-clear,
+html:not(.dark) .glass-clear {
+  background: transparent;
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.04),
+    0 16px 32px -14px rgba(0, 0, 0, 0.4);
+}
+
+/* Specular edge highlight (bright top edge, like refracted light). Masked to a
+   hairline ring so it never tints content inside the panel. */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 0.5px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.09) 22%,
+    rgba(255, 255, 255, 0.04) 48%,
+    transparent 68%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Light-reactive "liquid" sheen that follows the cursor */
+.glass-sheen {
+  overflow: hidden;
+}
+.glass-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    380px circle at var(--gx, 50%) var(--gy, -20%),
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.06) 42%,
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+html:not(.dark) .glass-sheen::after {
+  mix-blend-mode: normal;
+  background: radial-gradient(
+    380px circle at var(--gx, 50%) var(--gy, -20%),
+    rgba(255, 255, 255, 0.45),
+    rgba(255, 255, 255, 0.12) 45%,
+    transparent 70%
+  );
+}
+
+.glass-sheen:hover::after {
+  opacity: 1;
+}
+
+/* Floating glass capsule nav */
+.ra-nav {
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.ra-nav > * {
+  pointer-events: auto;
+}
+
+/* ---------- CUSTOM CURSOR ---------- */
+@media (pointer: fine) {
+  body.custom-cursor,
+  body.custom-cursor a,
+  body.custom-cursor button {
+    cursor: none;
+  }
+
+  .cursor-dot,
+  .cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    pointer-events: none;
+    border-radius: 50%;
+    will-change: transform;
+  }
+
+  .cursor-dot {
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+  }
+
+  .cursor-ring {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid rgba(59, 130, 246, 0.55);
+    transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .cursor-ring.cursor-hover {
+    width: 72px;
+    height: 72px;
+    border-color: rgba(139, 92, 246, 0.8);
+    background: rgba(139, 92, 246, 0.12);
+  }
+
+  html.dark .cursor-dot {
+    background: #ffffff;
+  }
+
+  html.dark .cursor-ring {
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  html.dark .cursor-ring.cursor-hover {
+    border-color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* ---------- SCROLL PROGRESS BAR ---------- */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 150;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #60a5fa, #818cf8, #a78bfa);
+}
+
+/* ---------- SECTION LABEL HELPERS ---------- */
+.section-index {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+}
+
+/* On small screens the projects rail is a native swipeable scroller (no
+   ScrollTrigger pin) so touch gestures feel native and the page stays smooth. */
+.projects-scroller {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.projects-scroller::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 767px) {
+  /* The scroller is the real scroll container, so snapping belongs on it
+     (scroll-snap-type on the track does nothing). */
+  .projects-scroller {
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1.5rem;
+  }
+  .project-card {
+    scroll-snap-align: start;
+  }
+  /* Dark mobile cards get a real panel so they don't merge into the page. */
+  html.dark .project-card {
+    background: linear-gradient(
+      165deg,
+      rgba(34, 40, 54, 0.9),
+      rgba(13, 17, 26, 0.85)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 24px 48px -20px rgba(0, 0, 0, 0.7);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
