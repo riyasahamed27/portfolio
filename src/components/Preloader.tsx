@@ -25,6 +25,10 @@ export function Preloader({
   useGSAP(
     () => {
       const obj = { value: 0 };
+      // Phones get a much shorter gate so content appears sooner.
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const progressDur = coarse ? 1.0 : 1.9;
+      const exitDur = coarse ? 0.55 : 0.9;
 
       const tl = gsap.timeline({
         defaults: { ease: "power3.out" },
@@ -59,7 +63,7 @@ export function Preloader({
       // ── progress + counter ─────────────────────────────────
       const tween = gsap.to(obj, {
         value: 100,
-        duration: 1.9,
+        duration: progressDur,
         ease: "power2.inOut",
         onUpdate: () => {
           if (counterRef.current) {
@@ -91,7 +95,7 @@ export function Preloader({
         )
         .to(
           containerRef.current,
-          { yPercent: -100, duration: 0.9, ease: "power4.inOut" },
+          { yPercent: -100, duration: exitDur, ease: "power4.inOut" },
           ">-0.15"
         )
         .add(() => {

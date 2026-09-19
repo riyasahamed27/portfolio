@@ -167,7 +167,13 @@ html:not(.dark) .aurora-blob {
 }
 
 @media (pointer: coarse) {
-  .aurora-blob { filter: blur(60px); opacity: 0.2; }
+  /* Mobile GPUs stutter when full-screen blur layers re-filter every frame.
+     Freeze the aurora drift so each blob is filtered once and composited. */
+  .aurora-blob {
+    filter: blur(48px);
+    opacity: 0.18;
+    animation: none;
+  }
 }
 
 @keyframes aurora-drift {
@@ -451,5 +457,45 @@ html:not(.dark) .glass-sheen::after {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* ---------- MOBILE / TOUCH PERFORMANCE ----------
+   Phones are mostly GPU- and compositor-bound; strip the layers that force
+   re-filters, re-blends, or keep oversized will-change layers alive. Desktop
+   (fine pointer) keeps the full look. */
+@media (pointer: coarse) {
+  /* The noise overlay animates a full-screen blend layer every frame. */
+  .grain {
+    animation: none;
+  }
+
+  /* One pass of blur is enough on mobile; 18px+ over many stacked glass layers
+     makes low-end GPUs drop tiles. */
+  .glass,
+  .glass-clear {
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+
+  /* mix-blend-mode sheen forces a per-frame composite even at opacity 0. */
+  .glass-sheen,
+  .glass-sheen::after {
+    mix-blend-mode: normal;
+  }
+
+  /* Floating desktop-only code-card animation; disable on touch. */
+  .code-card,
+  .code-card-badge {
+    animation: none;
+  }
+
+  /* Keep machines from promoting headings into expensive transform layers. */
+  .shear-target,
+  .code-card,
+  .code-card-badge,
+  .marquee-track,
+  .project-card {
+    will-change: auto;
   }
 }

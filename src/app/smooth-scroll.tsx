@@ -11,9 +11,11 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return;
-    }
+    // Phones touch-scroll natively and Lenis cannot smooth the wheel there
+    // anyway, so skip it on coarse pointers entirely (native scroll is faster
+    // and smoother on mobile hardware, and saves a constant rAF hitch).
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const lenis = new Lenis({
       duration: 1.2,

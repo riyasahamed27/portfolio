@@ -68,6 +68,12 @@ export function useHydrated(): boolean {
   );
 }
 
+/** True on touch devices — used to cheapen heavy glass effects. */
+export function isCoarsePointer(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(pointer: coarse)").matches;
+}
+
 /** Chromium is the only engine that runs url() filters as a backdrop-filter. */
 export function refractionSupported(): boolean {
   if (typeof navigator === "undefined") return false;
@@ -526,6 +532,7 @@ export function GlassSurface({
   ...props
 }: GlassSurfaceProps) {
   const dark = useGlassDark();
+  const coarse = isCoarsePointer();
   const t = clamp01(tint);
   const rgb = tintColor ?? (dark ? "60,62,68" : "255,255,255");
   const tintRef = useRef<HTMLDivElement | null>(null);
@@ -545,8 +552,12 @@ export function GlassSurface({
     };
   }, [handleRef, rgb, t, dark]);
 
-  const blurPx = Math.max(3, blur * (0.4 + t * 0.6));
-  const sat = 1 + (saturation - 1) * Math.max(t, 0.25);
+  // One cheaper pass of blur on phones: dozens of stacked 18px+ layers are
+  // the classic mobile lag source.
+  const blurPx = coarse
+    ? Math.max(3, Math.min(10, blur * 0.4))
+    : Math.max(3, blur * (0.4 + t * 0.6));
+  const sat = coarse ? 1.1 : 1 + (saturation - 1) * Math.max(t, 0.25);
   const backdrop = `blur(${blurPx}px) saturate(${sat})`;
 
   return (
@@ -568,7 +579,7 @@ export function GlassSurface({
           background: `rgba(${rgb},${dark ? t * 0.42 : 0.14 + t * 0.26})`,
         }}
       />
-      {specular && (
+      {specular && !coarse && (
         <>
           <div
             aria-hidden

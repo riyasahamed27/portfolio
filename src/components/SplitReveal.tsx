@@ -44,7 +44,7 @@ export function SplitReveal({
       duration: 1,
       delay,
       ease: "power4.out",
-      scrollTrigger: { trigger: ref.current, start: "top 88%" },
+      scrollTrigger: { trigger: ref.current, start: "top 88%", once: true },
     });
 
     return () => split.revert();

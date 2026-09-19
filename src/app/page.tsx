@@ -61,6 +61,17 @@ const reduceMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Phones: no smooth-scroll, no pinned rails, no scroll-scrubbed FX. Keeping the
+// animation workload (aurora re-tinting, parallax scrubbing, pinned sections)
+// off touch devices is what makes the page feel instant on mobile.
+const isCoarse = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(pointer: coarse)").matches;
+
+const isFine = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(pointer: fine)").matches;
+
 const SOCIALS = [
   { label: "GitHub", href: "https://github.com/riyasahamed27", icon: Github },
   {
@@ -226,6 +237,8 @@ export default function Portfolio() {
     if (reduceMotion()) return;
 
     ctx.current = gsap.context(() => {
+      // Mobile preloader is shorter (see Preloader), so sync the hero intro.
+      const introDelay = isCoarse() ? 1.75 : 3.05;
 
       // ---------- SCROLL PROGRESS ----------
       ScrollTrigger.create({
@@ -238,6 +251,8 @@ export default function Portfolio() {
       });
 
       // ---------- AURORA: PER-SECTION COLOR SCRUB ----------
+      // Paints a fresh GSAP tween on every scroll tick, so restrict it to
+      // desktop; phones keep the default gradient (and a fixed tween).
       const aurora = document.querySelector(".aurora");
       const auroraPalettes: Record<string, [string, string, string]> = {
         home: ["#60a5fa", "#a78bfa", "#f472b6"],
@@ -263,19 +278,25 @@ export default function Portfolio() {
         });
       };
 
-      ScrollTrigger.create({
-        start: 0,
-        end: () => document.documentElement.scrollHeight - window.innerHeight,
-        onUpdate: (self) => {
-          const mid = self.scroll() + window.innerHeight * 0.5;
-          let active: HTMLElement | null = auroraSections[0] || null;
-          for (const s of auroraSections) {
-            if (s.getBoundingClientRect().top + self.scroll() <= mid) active = s;
-            else break;
-          }
-          if (active) applyAurora(active.id);
-        },
-      });
+      // Only re-tint per section when a mouse is present — the layout reads
+      // (getBoundingClientRect loop) inside onUpdate cost too much on touch.
+      if (aurora && isFine()) {
+        ScrollTrigger.create({
+          start: 0,
+          end: () => document.documentElement.scrollHeight - window.innerHeight,
+          onUpdate: (self) => {
+            if (reduceMotion()) return;
+            const mid = self.scroll() + window.innerHeight * 0.5;
+            let active: HTMLElement | null = auroraSections[0] || null;
+            for (const s of auroraSections) {
+              if (s.getBoundingClientRect().top + self.scroll() <= mid)
+                active = s;
+              else break;
+            }
+            if (active) applyAurora(active.id);
+          },
+        });
+      }
 
       // ---------- HERO INTRO (SplitText) ----------
       let heroSplit: SplitText | null = null;
@@ -289,7 +310,7 @@ export default function Portfolio() {
         .timeline({ defaults: { ease: "power3.out" } })
         .from(
           heroSplit.chars,
-          { opacity: 0, duration: 1, stagger: 0.04, delay: 3.05 },
+          { opacity: 0, duration: 1, stagger: 0.04, delay: introDelay },
           0
         )
         .from(
@@ -323,7 +344,11 @@ export default function Portfolio() {
           duration: 1,
           ease: "power3.out",
           clearProps: "transform,opacity",
-          scrollTrigger: { trigger: el, start: "top 88%" },
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            once: true,
+          },
         });
       });
 
@@ -339,18 +364,37 @@ export default function Portfolio() {
         const boost = Math.min(Math.abs(velocity.current) / 1400, 3);
         gsap.to(marqueeTween, { timeScale: 1 + boost, duration: 0.6 });
       };
-      gsap.ticker.add(tick);
+      // Velocity-reactive marquee is a mouse nicety; skip the extra ticker on
+      // touch where nothing hovers.
+      if (isFine()) gsap.ticker.add(tick);
 
       // ---------- SKILLS POP-IN ----------
+      // `once: true` guarantees a chip, once revealed, is never hidden again.
+      // On touch the 3D flip is pricey AND flaky, so it fades + rises instead.
+      const skillTweenVars = isCoarse()
+        ? {
+            y: 24,
+            opacity: 0,
+            stagger: 0.03,
+            duration: 0.5,
+            ease: "power2.out" as const,
+          }
+        : {
+            scale: 0.3,
+            opacity: 0,
+            rotateX: -60,
+            stagger: 0.04,
+            duration: 0.7,
+            ease: "back.out(2)" as const,
+          };
       gsap.from(".skill-chip", {
-        scale: 0.3,
-        opacity: 0,
-        rotateX: -60,
-        stagger: 0.04,
-        duration: 0.7,
-        ease: "back.out(2)",
+        ...skillTweenVars,
         clearProps: "transform,opacity",
-        scrollTrigger: { trigger: "#skills", start: "top 70%" },
+        scrollTrigger: {
+          trigger: "#skills",
+          start: isCoarse() ? "top 85%" : "top 70%",
+          once: true,
+        },
       });
 
       // ---------- HERO PARALLAX OUT (all screen sizes) ----------
@@ -385,43 +429,48 @@ export default function Portfolio() {
         });
       });
 
-      // ---------- PARALLAX ORBS ----------
-      gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
-        const speed = parseFloat(el.dataset.parallax || "20");
-        gsap.fromTo(
-          el,
-          { yPercent: speed },
-          {
-            yPercent: -speed,
-            ease: "none",
-            scrollTrigger: {
-              trigger: el.closest("section") || el,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 1,
-            },
-          }
-        );
-      });
+      // ---------- PARALLAX ORBS (desktop only) ----------
+      if (isFine()) {
+        gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
+          const speed = parseFloat(el.dataset.parallax || "20");
+          gsap.fromTo(
+            el,
+            { yPercent: speed },
+            {
+              yPercent: -speed,
+              ease: "none",
+              scrollTrigger: {
+                trigger: el.closest("section") || el,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1,
+              },
+            }
+          );
+        });
+      }
 
       // ---------- OTHER DESKTOP-ONLY SCROLL EFFECTS (md and up) ----------
       // Velocity shear and the pinned horizontal projects rail are disabled on
-      // small screens where they feel janky.
-      gsap.matchMedia().add("(min-width: 768px)", () => {
-        // LIQUID SHEAR: headings tilt with scroll velocity.
-        const shearTargets = gsap.utils.toArray<HTMLElement>(".shear-target");
-        const shearSkewX = shearTargets.map((el) =>
-          gsap.quickTo(el, "skewX", { duration: 0.55, ease: "power3.out" })
-        );
-        const shearSkewY = shearTargets.map((el) =>
-          gsap.quickTo(el, "skewY", { duration: 0.55, ease: "power3.out" })
-        );
-        const shearTick = () => {
-          const shear = gsap.utils.clamp(-5, 5, velocity.current / 220);
-          shearSkewX.forEach((q) => q(shear));
-          shearSkewY.forEach((q) => q(shear * 0.22));
-        };
-        gsap.ticker.add(shearTick);
+      // small screens AND touch devices where they feel janky.
+      let shearTick: (() => void) | null = null;
+      gsap.matchMedia().add(
+        "(pointer: fine) and (min-width: 768px)",
+        () => {
+          // LIQUID SHEAR: headings tilt with scroll velocity.
+          const shearTargets = gsap.utils.toArray<HTMLElement>(".shear-target");
+          const shearSkewX = shearTargets.map((el) =>
+            gsap.quickTo(el, "skewX", { duration: 0.55, ease: "power3.out" })
+          );
+          const shearSkewY = shearTargets.map((el) =>
+            gsap.quickTo(el, "skewY", { duration: 0.55, ease: "power3.out" })
+          );
+          shearTick = () => {
+            const shear = gsap.utils.clamp(-5, 5, velocity.current / 220);
+            shearSkewX.forEach((q) => q(shear));
+            shearSkewY.forEach((q) => q(shear * 0.22));
+          };
+          gsap.ticker.add(shearTick);
 
         // PROJECTS: PINNED HORIZONTAL
         const projectsSection = document.querySelector("#projects");
@@ -497,7 +546,7 @@ export default function Portfolio() {
           duration: 0.9,
           ease: "power3.out",
           clearProps: "transform,opacity",
-          scrollTrigger: { trigger: el, start: "top 85%" },
+          scrollTrigger: { trigger: el, start: "top 85%", once: true },
         });
         const dot = el.querySelector(".exp-dot");
         if (dot) {
@@ -506,13 +555,14 @@ export default function Portfolio() {
             duration: 0.6,
             ease: "back.out(3)",
             clearProps: "transform",
-            scrollTrigger: { trigger: el, start: "top 85%" },
+            scrollTrigger: { trigger: el, start: "top 85%", once: true },
           });
         }
       });
 
       return () => {
         gsap.ticker.remove(tick);
+        if (shearTick) gsap.ticker.remove(shearTick);
         heroSplit?.revert();
       };
     }, rootRef);
@@ -1049,7 +1099,7 @@ type Skill = {
 
 function SkillChip({ name, icon: Icon, color }: Skill) {
   return (
-    <div className="skill-chip group transition-all hover:-translate-y-1 hover:drop-shadow-lg">
+    <div className="skill-chip group transition-[box-shadow,filter] duration-300 hover:-translate-y-1 hover:drop-shadow-lg">
       <GlassSurface
         tint={0}
         radius={16}
@@ -1103,6 +1153,9 @@ function ProjectCard({
             src={image}
             alt={title}
             loading="lazy"
+            decoding="async"
+            width={800}
+            height={480}
             onError={(e) => {
               (e.target as HTMLImageElement).src = fallback;
             }}
