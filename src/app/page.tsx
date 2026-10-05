@@ -192,7 +192,7 @@ const EXPERIENCE = [
   {
     role: "Software Development Intern",
     company: "RedBlox.io",
-    date: "2020 - 2023",
+    date: "Internship",
     items: [
       "Developed web modules using React.js, Express.js, and MySQL.",
       "Implemented backend APIs and user authentication flows.",
@@ -331,7 +331,16 @@ export default function Portfolio() {
         )
         .from(
           ".hero-canvas-wrap",
-          { opacity: 0, scale: 0.92, duration: 1.3 },
+          {
+            opacity: 0,
+            scale: 0.92,
+            duration: 1.3,
+            // Must clear the transform: a lingering transform/opacity on this
+            // wrapper (the Developer.tsx card's direct ancestor) forms a
+            // backdrop root, so the card's backdrop-filter could only ever
+            // sample the empty wrapper and the glass rendered flat.
+            clearProps: "transform,opacity",
+          },
           "-=1"
         );
 
@@ -578,6 +587,13 @@ export default function Portfolio() {
 
   // Liquid glass sheen: track pointer over glass surfaces (rAF-throttled).
   useEffect(() => {
+    // Touch has no hover, so the cursor-driven sheen never shows — but dragging
+    // to scroll *does* fire pointermove, and each event was measuring every
+    // glass element with getBoundingClientRect (forced layout) and writing two
+    // custom properties per element. That is pure scroll jank for no visual
+    // gain, so bail out entirely on coarse pointers.
+    if (isCoarse()) return;
+
     const glasses = gsap.utils.toArray<HTMLElement>(".glass-sheen");
     let raf = 0;
 
@@ -820,7 +836,7 @@ export default function Portfolio() {
             <p className="hero-subs mt-3 max-w-xl leading-relaxed text-slate-600 dark:text-slate-400">
               I build scalable, full-stack applications with{" "}
               <strong className="text-slate-900 dark:text-white">
-                React, Next.js, and Node.js
+                React, React Native, Next.js, and Node.js
               </strong>{" "}
               that deliver exceptional user experiences — clean code, real
               performance.

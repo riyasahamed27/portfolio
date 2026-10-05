@@ -74,6 +74,22 @@ export function isCoarsePointer(): boolean {
   return window.matchMedia("(pointer: coarse)").matches;
 }
 
+function subscribeCoarse(cb: () => void): () => void {
+  if (typeof window === "undefined") return () => undefined;
+  const mq = window.matchMedia("(pointer: coarse)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+
+/**
+ * Reactive `isCoarsePointer`. Reading matchMedia straight from render pins the
+ * device class at first paint and never re-evaluates; this re-renders when the
+ * pointer type actually changes (docking a tablet, devtools device mode).
+ */
+export function useCoarsePointer(): boolean {
+  return useSyncExternalStore(subscribeCoarse, isCoarsePointer, () => false);
+}
+
 /** Chromium is the only engine that runs url() filters as a backdrop-filter. */
 export function refractionSupported(): boolean {
   if (typeof navigator === "undefined") return false;
@@ -360,7 +376,7 @@ export function Glass({
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-[inherit]"
             style={{
-              background: `rgba(${rgb},${dark ? t * 0.4 : 0.14 + t * 0.24})`,
+              background: `rgba(${rgb},${dark ? 0.1 + t * 0.3 : 0.14 + t * 0.24})`,
             }}
           />
           <div
@@ -380,6 +396,16 @@ export function Glass({
 }
 
 // ── shared chrome ──────────────────────────────────────────────────────────
+
+/**
+ * Base tint alpha. Dark mode needs a non-zero floor: every card in the site is
+ * authored as `tint={0}` ("clear glass"), so a pure `t * 0.42` term resolves to
+ * `rgba(...,0)` in dark mode and the panel loses its fill entirely. The floor
+ * keeps a zero-tint panel readable without turning it into frosted glass.
+ */
+function tintAlpha(dark: boolean, t: number): number {
+  return dark ? 0.12 + t * 0.3 : 0.14 + t * 0.26;
+}
 
 function rimShadow(dark: boolean): string {
   return dark
@@ -532,7 +558,7 @@ export function GlassSurface({
   ...props
 }: GlassSurfaceProps) {
   const dark = useGlassDark();
-  const coarse = isCoarsePointer();
+  const coarse = useCoarsePointer();
   const t = clamp01(tint);
   const rgb = tintColor ?? (dark ? "60,62,68" : "255,255,255");
   const tintRef = useRef<HTMLDivElement | null>(null);
@@ -543,10 +569,8 @@ export function GlassSurface({
       setTintLift(delta: number) {
         const el = tintRef.current;
         if (el) {
-          const a = dark
-            ? Math.min(0.55, Math.max(0, t * 0.42 + delta))
-            : 0.14 + t * 0.26 + delta;
-          el.style.background = `rgba(${rgb},${Math.min(0.6, Math.max(0.08, a))})`;
+          const a = Math.min(0.6, Math.max(0.08, tintAlpha(dark, t) + delta));
+          el.style.background = `rgba(${rgb},${a})`;
         }
       },
     };
@@ -576,10 +600,10 @@ export function GlassSurface({
         ref={tintRef}
         className="pointer-events-none absolute inset-0 rounded-[inherit]"
         style={{
-          background: `rgba(${rgb},${dark ? t * 0.42 : 0.14 + t * 0.26})`,
+          background: `rgba(${rgb},${tintAlpha(dark, t)})`,
         }}
       />
-      {specular && !coarse && (
+      {specular && (
         <>
           <div
             aria-hidden

@@ -166,16 +166,6 @@ html:not(.dark) .aurora-blob {
   opacity: 0.22;
 }
 
-@media (pointer: coarse) {
-  /* Mobile GPUs stutter when full-screen blur layers re-filter every frame.
-     Freeze the aurora drift so each blob is filtered once and composited. */
-  .aurora-blob {
-    filter: blur(48px);
-    opacity: 0.18;
-    animation: none;
-  }
-}
-
 @keyframes aurora-drift {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
   33%  { transform: translate3d(4%, -3%, 0) scale(1.08); }
@@ -191,6 +181,28 @@ html:not(.dark) .aurora-blob {
 }
 .aurora-blob-c {
   animation-delay: -17s;
+}
+
+/* Mobile GPUs stutter when full-screen blur layers re-filter every frame: a
+   `scale()` on a blurred element re-runs the blur, and three 60vmax blobs are
+   a lot of fill rate. Freeze the drift so each blob is filtered once and then
+   only composited.
+
+   This MUST come after the base `.aurora-blob` block above — a media query adds
+   no specificity, so an earlier copy of these rules would be silently overridden
+   by the later `animation` shorthand and the freeze would never apply.
+   `will-change` is dropped too so the layers aren't pinned for the session. */
+@media (pointer: coarse) {
+  .aurora-blob {
+    animation: none;
+    filter: blur(40px);
+    opacity: 0.18;
+    will-change: auto;
+  }
+  /* Matches the specificity of `html:not(.dark) .aurora-blob` above. */
+  html:not(.dark) .aurora-blob {
+    opacity: 0.16;
+  }
 }
 
 /* Liquid shear targets */
@@ -465,9 +477,14 @@ html:not(.dark) .glass-sheen::after {
    re-filters, re-blends, or keep oversized will-change layers alive. Desktop
    (fine pointer) keeps the full look. */
 @media (pointer: coarse) {
-  /* The noise overlay animates a full-screen blend layer every frame. */
+  /* The noise overlay animates a full-screen blend layer every frame. It's also
+     laid out at 200% x 200% (`inset: -50%`) purely so the animation has room to
+     travel — with the animation gone, clip it back to one viewport. */
   .grain {
     animation: none;
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
 
   /* One pass of blur is enough on mobile; 18px+ over many stacked glass layers
@@ -482,6 +499,14 @@ html:not(.dark) .glass-sheen::after {
   .glass-sheen,
   .glass-sheen::after {
     mix-blend-mode: normal;
+  }
+
+  /* `:hover` never fires on touch, so the sheen used to sit at opacity 0 for the
+     whole session and these panels lost their only specular highlight. With the
+     blend mode already off it is a single static paint, so give it a resting
+     opacity instead of the hover gate. */
+  .glass-sheen::after {
+    opacity: 0.5;
   }
 
   /* Floating desktop-only code-card animation; disable on touch. */

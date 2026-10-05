@@ -113,8 +113,11 @@ export function Preloader({
   return (
     <div
       ref={containerRef}
-      className={`fixed inset-0 z-[300] flex flex-col items-center justify-center bg-[#f4f5f7] dark:bg-[#050507] transition-pointer-events ${
-        done ? "pointer-events-none" : "pointer-events-auto"
+      // `invisible` once finished, not just `pointer-events-none`: the node is
+      // fixed and translated off-screen but stays in the paint tree, holding an
+      // oversized layer plus three blur([110px]) glows for the whole session.
+      className={`fixed inset-0 z-[300] flex flex-col items-center justify-center bg-[#f4f5f7] dark:bg-[#050507] transition-opacity ${
+        done ? "pointer-events-none invisible opacity-0" : "pointer-events-auto"
       }`}
     >
       {/* ambient glows to echo the site's aurora */}
